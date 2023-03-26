@@ -11,7 +11,10 @@ def main():
     logging.info(request.json)
 
     response = {
-        "text": "Привет!"
+        "text": "Hie",
+        "response": {
+            "end_session": False
+        }
         
     }
 
