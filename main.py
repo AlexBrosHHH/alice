@@ -17,14 +17,18 @@ def main():
             "end_session": False
         }
     }
-
-    req = request.json
-    if req["session"]["new"]:
-        response["response"]["text"] = "Привет! Как твои дела? Как отметил новый год?"
-    else:
-        if req["request"]["original_utterance"].lower() in ["хорошо", "отлично"]:
-            response["response"]["text"] = "Супер! Я за вас рада!"
-        elif req["request"]["original_utterance"].lower() in ["плохо", "скучно"]:
-            response["response"]["text"] = "Это печально... нужно было позвать меня!"
-
+    
+    handle_dialog(response, request.json)
     return json.dumps(response)
+
+
+def handle_dialog(res,req):
+    if req['request']['original_utterance']:
+        ## Проверяем, есть ли содержимое
+        res['response']['text'] = req['request']['original_utterance']
+    else:
+        ## Если это первое сообщение — представляемся
+        res['response']['text'] = "Я echo-bot, повторяю за тобой"
+    
+if __name__ == '__main__':
+    app.run()
