@@ -1,25 +1,30 @@
 from flask import Flask, request
 import logging
 import json
+
 app = Flask(__name__)
-logging.basicConfig(level=logging.DEBUG)
+
+#logging.basicConfig(level=logging.DEBUG)
+
 @app.route("/", methods=["POST"])
 def main():
-    logging.info(request.json)
+    data = request.json
+    command = data.get('request', {}).get('command', '')
+
+    end_session = False
+
+    response_text = 'Привет! Ты здесь впервые?'
+
+    if "да" in command:
+        response_text = "Я могу тебе помочь составить мини-сочинение на любую тему. Тебе нужно сказать про что должно быть сочинение и я его тебе напишу."
+    elif "нет" in command:
+        response_text = "Скажи тему сочинение или опиши про что оно должно быть."
 
     response = {
-        "text": "Hello!"
-        "response": {
-            "end_session": False
-        }
+        'response': {
+            'text': response_text,
+            'end_session ': end_session
+        },
+        'version': '1.0'
     }
-
-    req = request.json
-    if req["session"]["new"]:
-        response["response"]["text"] = "Привет! Как твои дела? Как отметил новый год?"
-    else:
-        if req["request"]["original_utterance"].lower() in ["хорошо", "отлично"]:
-            response["response"]["text"] = "Супер! Я за вас рада!"
-        elif req["request"]["original_utterance"].lower() in ["плохо", "скучно"]:
-            response["response"]["text"] = "Это печально... нужно было позвать меня!"
-    return json.dumps(response)
+    return response
