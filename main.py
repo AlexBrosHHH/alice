@@ -11,7 +11,8 @@ def main():
     logging.info(request.json)
 
     response = {
-        "text": "Hello!"
+        "text": request.json["or"],
+        "text": request.json["Hello"],
         "response": {
             "end_session": False
         }
