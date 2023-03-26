@@ -16,6 +16,7 @@ def main():
         "response": {
             "end_session": False
         }
+        "text": "Привет! Меня зовут алиса. Я могу помочь с сочинением историй и др."
     }
     
     handle_dialog(response, request.json)
