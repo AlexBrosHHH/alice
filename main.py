@@ -16,14 +16,16 @@ def main():
     response_text = 'Привет! Ты здесь впервые?'
 
     if "да" in command:
-        response_text = "Я могу тебе помочь составить мини-сочинение на любую тему. Тебе нужно сказать про что должно быть сочинение и я его тебе напишу."
+        response_text = "Я генератор сочинений. Я могу сгенерировать любое сочинение по теме, либо по краткому описанию! Начнем?"
+        if "начнём" in command:
+            response_text = "*переход к сочинителю!*"
     elif "нет" in command:
-        response_text = "Скажи тему сочинение или опиши про что оно должно быть."
+        response_text = "*переход к сочинителю!*"
 
     response = {
         'response': {
             'text': response_text,
-            'end_session ': end_session
+            'end_session ': end_session,
         },
         'version': '1.0'
     }
