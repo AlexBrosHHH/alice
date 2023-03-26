@@ -11,12 +11,8 @@ def main():
     logging.info(request.json)
 
     response = {
-        "text": request.json["version"],
-        "text": request.json["session"],
-        "response": {
-            "end_session": False
-        }
-        "text": "Привет! Меня зовут алиса. Я могу помочь с сочинением историй и др."
+        "text": "Привет!"
+        
     }
 
     req = request.json
