@@ -7,13 +7,17 @@ from random import randint
 from flask import Flask, request
 
 app = Flask(__name__)
-
+url = "https://api.writesonic.com/v2/business/content/ai-article-writer-v2?engine=average&language=ru&num_copies=1"
 logging.basicConfig(level=logging.DEBUG)
 
 # Хранилище данных о сессиях.
 sessionStorage = {}
 
-
+headers = {
+                "accept": "application/json",
+                "content-type": "application/json",
+                "X-API-KEY": "315f79b7-8037-4e1c-a35d-bf255c6bfd24"
+            }
 # Задаем параметры приложения Flask.
 @app.route("/", methods=['POST'])
 def main():
@@ -61,7 +65,7 @@ def handle_dialog(req, res):
                                                             'что ты умеешь?', 'что ты можешь?', 'кто ты',
                                                             'зачем ты нужен', 'зачем тебя создали']:
             res['response'][
-                'text'] = 'Я расскажу тебе свежую новость, нужно только выбрать одну из категорий: спорт, наука, бизнес, технологии, здоровье' # Вставить текст ПОМОЩЬ
+                'text'] = 'Я расскажу тебе свежую новость, нужно только выбрать одну из категорий: спорт, наука, природа, технологии, здоровье' # Вставить текст ПОМОЩЬ
             res['response']['buttons'] = get_suggests(user_id)
             return
         if req['request']['original_utterance'].lower() in ['да', 'хочу', 'конечно', 'ага', 'валяй', 'рассказывай',
@@ -71,11 +75,18 @@ def handle_dialog(req, res):
             return
         if req['request']['original_utterance'].lower() in [
             'спорт',
-            'бизнес',
+            'природа',
             'технологии',
             'здоровье',
             'наука',
-        ]
+        ]:
+            text = req['request']['original_utterance'].lower()
+            print(text)
+            response = requests.post(text, url, headers=headers)
+    except:
+        res['response'][
+            'text'] = 'Кажется, что-то пошло не так. Попробуй ещё раз! Выбери: спорт, здоровье, технологии, природа или наука?'
+        res['response']['buttons'] = get_suggests(user_id)
 
 def get_start_sugget(user_id):
     session = sessionStorage[user_id]
