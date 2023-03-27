@@ -1,59 +1,93 @@
-from flask import Flask, request, jsonify
-import logging
 import json
+import logging
 import requests
+from random import randint
+
+# Импортируем подмодули Flask для запуска веб-сервиса.
+from flask import Flask, request
 
 app = Flask(__name__)
 
-#logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
 
-url = "https://api.writesonic.com/v2/business/content/chatsonic?engine=premium"
+# Хранилище данных о сессиях.
+sessionStorage = {}
 
-poluch = False
 
-payload = {
-    "enable_google_results": False,
-    "enable_memory": False,
-    "input_text": "Кто такой дональд трамп кратко."
-}
-headers = {
-    "accept": "application/json",
-    "content-type": "application/json",
-    "X-API-KEY": "315f79b7-8037-4e1c-a35d-bf255c6bfd24"
-}
-
-@app.route("/", methods=["POST"])
+# Задаем параметры приложения Flask.
+@app.route("/", methods=['POST'])
 def main():
-    data = request.json
-    command = data.get('request', {}).get('command', '')
-    response_text = ''
-    end_session = False
-
-    if "начнём" in command:
-        response_text = "Какую тему ты хочешь выбрать для сочинения?"
-    elif "сочинение" in command:
-        # отправляем запрос к API нейросети
-        response_text = "Играем музыку!"
-        response = {
-            'response': {
-                'tts': "<speaker audio='dialogs-upload/439d35b5-5924-4db3-87e3-2ab406bb8683/4c86841e-5318-4c2f-99b7-8b44f6e0596f.opus'>"
-            }
-        }
-        print("Отправил")
-        response = requests.post(url, json=payload, headers=headers)
-        # обрабатываем ответ от нейросети
-        if response.status_code == 200:
-            print("получил")
-            response_text = response.json().get('data', {}).get('text', '')
-        else:
-            response_text = "Что-то пошло не так при генерации сочинения."
-        end_session = True
+    logging.info('Request: %r', request.json)
 
     response = {
-        'response': {
-            'text': response_text,
-            'end_session': end_session,
-        },
-        'version': '1.0'
+        "version": request.json['version'],
+        "session": request.json['session'],
+        "response": {
+            "end_session": False
+        }
     }
-    return jsonify(response)
+    handle_dialog(request.json, response)
+
+    logging.info('Response: %r', response)
+    return json.dumps(
+        response,
+        ensure_ascii=False,
+        indent=2
+    )
+
+
+def handle_dialog(req, res):
+    user_id = req['session']['application']['application_id']
+    if req['session']['new']:
+        sessionStorage[user_id] = {
+            'suggests': [
+                "спорт",
+                "технологии",
+                "наука",
+                "здоровье",
+                "природа",
+                "начнём",
+            ]
+        }
+    if req['session']['new']:
+        # Это новый пользователь.
+        # Инициализируем сессию и поприветствуем его.
+        res['response'][
+            'text'] = 'Привет! Я генератор сочинений. Я могу сгенерировать любое сочинение по теме, либо по краткому описанию! Начнем?'
+        res['response']['buttons'] = get_suggests(user_id)
+        return
+    try:
+        if req['request']['original_utterance'].lower() in ['помощь', 'что ты умеешь', 'что ты можешь',
+                                                            'что ты умеешь?', 'что ты можешь?', 'кто ты',
+                                                            'зачем ты нужен', 'зачем тебя создали']:
+            res['response'][
+                'text'] = 'Я расскажу тебе свежую новость, нужно только выбрать одну из категорий: спорт, наука, бизнес, технологии, здоровье' # Вставить текст ПОМОЩЬ
+            res['response']['buttons'] = get_suggests(user_id)
+            return
+        if req['request']['original_utterance'].lower() in ['да', 'хочу', 'конечно', 'ага', 'валяй', 'рассказывай',
+                                                        'слушаю', 'очень', 'весь внимание']:
+            res['response']['text'] = 'Выбери одну из категорий: спорт, наука, природа, технологии, здоровье'
+            res['response']['buttons'] = get_suggests(user_id)
+            return
+        if req['request']['original_utterance'].lower() in [
+            'спорт',
+            'бизнес',
+            'технологии',
+            'здоровье',
+            'наука',
+        ]
+
+def get_start_sugget(user_id):
+    session = sessionStorage[user_id]
+    suggests = [
+        {'title': suggest, 'hide': True}
+        for suggest in session["suggests"][5]
+    ]
+# Функция возвращает две подсказки для ответа.
+def get_suggests(user_id):
+    session = sessionStorage[user_id]
+    suggests = [
+        {'title': suggest, 'hide': True}
+        for suggest in session['suggests'][:4]
+    ]
+    return suggests
