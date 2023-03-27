@@ -1,7 +1,9 @@
+почему в яндекс диалогах выдаёт ошибку "1. недопустимый ответ "
+
 import json
 import logging
 import requests
-from random import randint
+#from random import randint
 
 # Импортируем подмодули Flask для запуска веб-сервиса.
 from flask import Flask, request
@@ -82,18 +84,19 @@ def handle_dialog(req, res):
         ]:
             text = req['request']['original_utterance'].lower()
             print(text)
-            response = requests.post(text, url, headers=headers)
+            response = requests.post(url, headers=headers)
     except:
         res['response'][
             'text'] = 'Кажется, что-то пошло не так. Попробуй ещё раз! Выбери: спорт, здоровье, технологии, природа или наука?'
         res['response']['buttons'] = get_suggests(user_id)
 
-def get_start_sugget(user_id):
+def get_start_suggest(user_id):
     session = sessionStorage[user_id]
     suggests = [
         {'title': suggest, 'hide': True}
         for suggest in session["suggests"][5]
     ]
+    return suggests
 # Функция возвращает две подсказки для ответа.
 def get_suggests(user_id):
     session = sessionStorage[user_id]
