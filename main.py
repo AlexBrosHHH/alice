@@ -86,8 +86,11 @@ def handle_dialog(req, res):
             print(text)
             response = requests.post(url, headers=headers)
     except:
-        res['response'][
-            'text'] = 'Кажется, что-то пошло не так. Попробуй ещё раз! Выбери: спорт, здоровье, технологии, природа или наука?'
+        if response.status_code == 200:
+            res['response']['text'] = response.json()["data"][0]["output"]
+            res['response']['buttons'] = get_suggests(user_id)
+        else:
+            raise Exception("Ошибка при получении ответа от внешнего сервиса")
         res['response']['buttons'] = get_suggests(user_id)
 
 def get_start_suggest(user_id):
